@@ -1,6 +1,5 @@
 #pragma once
 
-#include "config_common.h"
 
 // wiring of each half
 #define MATRIX_ROW_PINS { F4, F5, C6, D7, E6 }
@@ -10,5 +9,3 @@
 /* ws2812 RGB LED */
 #define RGB_DI_PIN D3
 #define RGBLED_NUM 1    // Number of LEDs
-// #define ws2812_PORTREG  PORTD
-// #define ws2812_DDRREG   DDRD
