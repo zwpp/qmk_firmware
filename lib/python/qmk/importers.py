@@ -5,7 +5,7 @@ import json
 
 from qmk.git import git_get_username
 from qmk.json_schema import validate
-from qmk.path import keyboard, keymap
+from qmk.path import keyboard, keymaps
 from qmk.constants import MCU2BOOTLOADER, LEGACY_KEYCODES
 from qmk.json_encoders import InfoJSONEncoder, KeymapJSONEncoder
 from qmk.json_schema import deep_update, json_load
@@ -84,14 +84,14 @@ def import_keymap(keymap_data):
     kb_name = keymap_data['keyboard']
     km_name = keymap_data['keymap']
 
-    km_folder = keymap(kb_name) / km_name
+    km_folder = keymaps(kb_name)[0] / km_name
     keyboard_keymap = km_folder / 'keymap.json'
 
     # This is the deepest folder in the expected tree
     keyboard_keymap.parent.mkdir(parents=True, exist_ok=True)
 
     # Dump out all those lovely files
-    keyboard_keymap.write_text(json.dumps(keymap_data, cls=KeymapJSONEncoder))
+    keyboard_keymap.write_text(json.dumps(keymap_data, cls=KeymapJSONEncoder, sort_keys=True))
 
     return (kb_name, km_name)
 
@@ -102,7 +102,7 @@ def import_keyboard(info_data, keymap_data=None):
 
     # And validate some more as everything is optional
     if not all(key in info_data for key in ['keyboard_name', 'layouts']):
-        raise ValueError('invalid info.json')
+        raise ValueError('invalid json config')
 
     kb_name = info_data['keyboard_name']
 
@@ -115,7 +115,7 @@ def import_keyboard(info_data, keymap_data=None):
         # TODO: if supports community then grab that instead
         keymap_data = _gen_dummy_keymap(kb_name, info_data)
 
-    keyboard_info = kb_folder / 'info.json'
+    keyboard_json = kb_folder / 'keyboard.json'
     keyboard_keymap = kb_folder / 'keymaps' / 'default' / 'keymap.json'
 
     # begin with making the deepest folder in the tree
@@ -136,11 +136,11 @@ def import_keyboard(info_data, keymap_data=None):
     for file in list(TEMPLATE.iterdir()):
         replace_placeholders(file, kb_folder / file.name, tokens)
 
-    temp = json_load(keyboard_info)
+    temp = json_load(keyboard_json)
     deep_update(temp, info_data)
 
-    keyboard_info.write_text(json.dumps(temp, cls=InfoJSONEncoder))
-    keyboard_keymap.write_text(json.dumps(keymap_data, cls=KeymapJSONEncoder))
+    keyboard_json.write_text(json.dumps(temp, cls=InfoJSONEncoder, sort_keys=True))
+    keyboard_keymap.write_text(json.dumps(keymap_data, cls=KeymapJSONEncoder, sort_keys=True))
 
     return kb_name
 
